@@ -5,8 +5,8 @@ package data_access
 // I is the expected input type. In otherwords a DTO type of object.
 type DataAccessor[O any, I any] interface {
 	GetAll() ([]*O, error)
-	GetById(id int) (*O, error)
-	Add(data *I) (int, error)
+	GetById(id string) (*O, error)
+	Add(data *I) (string, error)
 	Update(id int, data *I) error
 	Delete(id int) error
 }

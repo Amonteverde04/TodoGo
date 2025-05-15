@@ -30,19 +30,18 @@ func (taskAccessor TaskAccessor) GetAll() ([]*entity.TaskEntity, error) {
 }
 
 // Gets a task by id.
-func (taskAccessor TaskAccessor) GetById(id int) (*entity.TaskEntity, error) {
+func (taskAccessor TaskAccessor) GetById(id string) (*entity.TaskEntity, error) {
 	return &entity.TaskEntity{}, nil
 }
 
 // Adds a task.
-func (taskAccessor TaskAccessor) Add(taskData *todo.Task) (int, error) {
+func (taskAccessor TaskAccessor) Add(taskData *todo.Task) (string, error) {
 	if filehandling.FileIsEmpty(&taskAccessor.file) {
 		InstantiateTaskFile(&taskAccessor.file)
 	}
 
-	WriteTaskData(&taskAccessor.file, *taskData)
-
-	return 1, nil
+	id := WriteTaskData(&taskAccessor.file, *taskData)
+	return id, nil
 }
 
 // Updates a task.
@@ -63,9 +62,17 @@ func InstantiateTaskFile(file *os.File) {
 	file.WriteString(strings.Join(combinedPropertyNameSlice, ","))
 }
 
-func WriteTaskData(file *os.File, taskData todo.Task) {
-	entityPropertyValueSlice := reflection.ReflectValues(taskData)
-	taskPropertyValueSlice := reflection.ReflectValues(taskData)
+// Appends task data in csv format.
+func WriteTaskData(file *os.File, taskData todo.Task) string {
+	taskToStore := CreateTaskEntity(taskData)
+	entityPropertyValueSlice := reflection.ReflectValues(taskToStore.Entity)
+	taskPropertyValueSlice := reflection.ReflectValues(taskToStore.Task)
 	combinedPropertyValueSlice := append(entityPropertyValueSlice, taskPropertyValueSlice...)
 	file.WriteString("\n" + strings.Join(combinedPropertyValueSlice, ","))
+	return taskToStore.Id
+}
+
+// Creates a task entity to be stored.
+func CreateTaskEntity(taskData todo.Task) entity.TaskEntity {
+	return entity.NewTaskEntity(taskData)
 }
