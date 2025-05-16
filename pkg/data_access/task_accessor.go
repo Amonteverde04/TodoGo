@@ -12,6 +12,7 @@ import (
 	"github.com/Amonteverde04/TodoGo/internal/reflection"
 	"github.com/Amonteverde04/TodoGo/pkg/entity"
 	"github.com/Amonteverde04/TodoGo/pkg/todo"
+	"github.com/google/uuid"
 )
 
 const (
@@ -77,6 +78,50 @@ func (taskAccessor TaskAccessor) GetAll() ([]entity.TaskEntity, error) {
 	return tasks, nil
 }
 
+// Gets a task using its id.
+func (taskAccessor TaskAccessor) GetById(id uuid.UUID) (entity.TaskEntity, error) {
+	if file_handling.FileIsEmpty(&taskAccessor.file) {
+		return entity.TaskEntity{}, nil
+	}
+
+	reader := csv.NewReader(&taskAccessor.file)
+	var taskToUpdate entity.TaskEntity
+
+	// Skip first header row.
+	reader.Read()
+
+	// Read the data rows.
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break // End of file
+		}
+		if err != nil {
+			error_handling.HandleError(err.Error(), 1)
+		}
+		if row[0] == id.String() {
+			// Bind record data.
+			goalStatus, _ := strconv.Atoi(row[5])
+			taskToUpdate = entity.TaskEntity{
+				Entity: entity.Entity{
+					Id:        row[0],
+					CreatedAt: row[1],
+					UpdatedAt: row[2],
+				},
+				Task: todo.Task{
+					Title:      row[3],
+					Goal:       row[4],
+					GoalStatus: todo.TaskStatus(goalStatus),
+					GoalNote:   row[6],
+				},
+			}
+			break
+		}
+	}
+
+	return taskToUpdate, nil
+}
+
 // Adds a task.
 func (taskAccessor TaskAccessor) Add(taskData *todo.Task) (string, error) {
 	if file_handling.FileIsEmpty(&taskAccessor.file) {
@@ -87,13 +132,43 @@ func (taskAccessor TaskAccessor) Add(taskData *todo.Task) (string, error) {
 	return id, nil
 }
 
-// Updates a task.
-func (taskAccessor TaskAccessor) Update(id int, taskData *todo.Task) error {
+// Updates a task. TODO
+func (taskAccessor TaskAccessor) Update(taskData entity.TaskEntity) error {
+	if file_handling.FileIsEmpty(&taskAccessor.file) {
+		return nil
+	}
+
+	reader := csv.NewReader(&taskAccessor.file)
+	//writer := csv.NewWriter(&taskAccessor.file)
+
+	// Skip first header row.
+	reader.Read()
+
+	// Read the data rows.
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break // End of file
+		}
+		if err != nil {
+			error_handling.HandleError(err.Error(), 1)
+		}
+		if row[0] == taskData.Entity.Id {
+			// Update record data.
+			row[2] = taskData.Entity.UpdatedAt
+			row[3] = taskData.Task.Title
+			row[4] = taskData.Task.Goal
+			row[5] = strconv.Itoa(int(taskData.Task.GoalStatus))
+			row[6] = taskData.Task.GoalNote
+			break
+		}
+	}
+
 	return nil
 }
 
 // Deletes a task.
-func (taskAccessor TaskAccessor) Delete(id int) error {
+func (taskAccessor TaskAccessor) Delete(id uuid.UUID) error {
 	return nil
 }
 

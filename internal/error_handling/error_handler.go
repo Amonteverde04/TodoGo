@@ -10,3 +10,8 @@ func HandleError(errorMessage string, errorCode int8) {
 	fmt.Println(errorMessage)
 	os.Exit(int(errorCode))
 }
+
+// Handles invalid commands.
+func HandleInvalidSelection() {
+	HandleError("expected 'list', 'addTask', 'removeTask', and 'updateTask' subcommands", 1)
+}
