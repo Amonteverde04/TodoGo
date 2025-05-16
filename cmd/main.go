@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Amonteverde04/TodoGo/internal/error_handling"
+	"github.com/Amonteverde04/TodoGo/internal/formatting"
 	"github.com/Amonteverde04/TodoGo/internal/validator"
 	"github.com/Amonteverde04/TodoGo/pkg/data_access"
 	"github.com/Amonteverde04/TodoGo/pkg/entity"
@@ -52,7 +53,7 @@ func main() {
 		}
 		// Output stored data.
 		fmt.Println("Task added:")
-		fmt.Print(taskToAdd.TaskToJson())
+		fmt.Print(formatting.ToJSON(taskToAdd))
 	case "updateTask":
 		//updateCmd.Parse(os.Args[2:])
 		//if *updateId == 0 {
@@ -65,9 +66,7 @@ func main() {
 		if err != nil {
 			error_handling.HandleError(err.Error(), 1)
 		}
-		for i := 0; i < len(tasks); i++ {
-			println(tasks[i].TaskToJson())
-		}
+		fmt.Println(formatting.ToJSON(tasks))
 	default:
 		error_handling.HandleError("expected 'add' subcommands", 1)
 	}
