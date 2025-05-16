@@ -19,6 +19,8 @@ func main() {
 	addGoalStatus := addCmd.Int("goalStatus", 0, "Sets the status of the high level goal. Available options: 1 (IN PROGRESS), 2 (TO REVIEW), 3 (ON HOLD), or 4 (DONE).")
 	addGoalNote := addCmd.String("goalNote", "", "Sets notes about the high level goal.")
 
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+
 	//updateCmd := flag.NewFlagSet("updateTask", flag.ExitOnError)
 	//updateId := updateCmd.Int("id", 0, "Reference to the task that should be updated.")
 	//updateTitle := updateCmd.String("title", "", "Sets the title of the task being added.")
@@ -57,6 +59,15 @@ func main() {
 		//	handleError("The id argument is required when using the update subcommand.", 1)
 		//}
 		//validateTaskTitleAndStatus(*updateTitle, *updateGoalStatus)
+	case "list":
+		listCmd.Parse(nil)
+		tasks, err := data_access.DataAccessor[entity.TaskEntity, todo.Task].GetAll(data_access.NewTaskAccessor())
+		if err != nil {
+			error_handling.HandleError(err.Error(), 1)
+		}
+		for i := 0; i < len(tasks); i++ {
+			println(tasks[i].TaskToJson())
+		}
 	default:
 		error_handling.HandleError("expected 'add' subcommands", 1)
 	}

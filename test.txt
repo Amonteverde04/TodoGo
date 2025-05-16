@@ -1,2 +1,0 @@
-Id,CreatedAt,UpdatedAt,Title,Goal,GoalStatus,GoalNote
-09015b46-0395-426b-9a8a-517e3cc53901,2025-05-15 23:56:30.7377636 +0000 UTC,2025-05-15 23:56:30.7377636 +0000 UTC,Find dinosaurs,Find fossil,1,Need to go to other countries. Not enough research
