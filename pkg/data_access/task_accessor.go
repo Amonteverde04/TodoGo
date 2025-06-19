@@ -228,9 +228,25 @@ func RewriteFile(records [][]string) {
 	if err != nil {
 		error_handling.HandleError(err.Error(), 1)
 	}
+
+	// Remove trailing white space.
+	trimmedContent := TrimWhiteSpace()
+	err = os.WriteFile(file_name, []byte(trimmedContent), 0644)
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
 }
 
 // Creates a task entity to be stored.
 func CreateTaskEntity(taskData todo.Task) entity.TaskEntity {
 	return entity.NewTaskEntity(taskData)
+}
+
+// Trim whitespace from update and delete.
+func TrimWhiteSpace() string {
+	content, err := os.ReadFile(file_name)
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
+	return strings.TrimRight(string(content), "\n")
 }

@@ -1,5 +1,7 @@
 package todo
 
+import "strings"
+
 // Represents a task.
 type Task struct {
 	Title      string
@@ -11,9 +13,13 @@ type Task struct {
 // Returns a new task object.
 func NewTask(title string, goal string, goalStatus int, goalNote string) Task {
 	return Task{
-		Title:      title,
-		Goal:       goal,
+		Title:      SanitizeCommas(title),
+		Goal:       SanitizeCommas(goal),
 		GoalStatus: TaskStatus(goalStatus),
-		GoalNote:   goalNote,
+		GoalNote:   SanitizeCommas(goalNote),
 	}
+}
+
+func SanitizeCommas(value string) string {
+	return strings.ReplaceAll(value, ",", " ")
 }
