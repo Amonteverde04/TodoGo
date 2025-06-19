@@ -132,27 +132,26 @@ func (taskAccessor TaskAccessor) Add(taskData *todo.Task) (string, error) {
 	return id, nil
 }
 
-// Updates a task. TODO
+// Updates a task
 func (taskAccessor TaskAccessor) Update(taskData entity.TaskEntity) error {
 	if file_handling.FileIsEmpty(&taskAccessor.file) {
 		return nil
 	}
 
 	reader := csv.NewReader(&taskAccessor.file)
-	//writer := csv.NewWriter(&taskAccessor.file)
 
 	// Skip first header row.
-	reader.Read()
+	records, err := reader.ReadAll()
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
 
-	// Read the data rows.
-	for {
-		row, err := reader.Read()
-		if err == io.EOF {
-			break // End of file
+	// Read the data rows and update.
+	for i, row := range records {
+		if i == 0 {
+			continue
 		}
-		if err != nil {
-			error_handling.HandleError(err.Error(), 1)
-		}
+
 		if row[0] == taskData.Entity.Id {
 			// Update record data.
 			row[2] = taskData.Entity.UpdatedAt
@@ -164,11 +163,33 @@ func (taskAccessor TaskAccessor) Update(taskData entity.TaskEntity) error {
 		}
 	}
 
+	RewriteFile(records)
 	return nil
 }
 
 // Deletes a task.
 func (taskAccessor TaskAccessor) Delete(id uuid.UUID) error {
+	if file_handling.FileIsEmpty(&taskAccessor.file) {
+		return nil
+	}
+
+	reader := csv.NewReader(&taskAccessor.file)
+
+	// Skip first header row.
+	records, err := reader.ReadAll()
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
+
+	// Read the data rows and keep everything but removed item.
+	var recordsToKeep [][]string
+	for i, row := range records {
+		if i == 0 || row[0] != id.String() {
+			recordsToKeep = append(recordsToKeep, row)
+		}
+	}
+
+	RewriteFile(recordsToKeep)
 	return nil
 }
 
@@ -188,6 +209,25 @@ func WriteTaskData(file *os.File, taskData todo.Task) string {
 	combinedPropertyValueSlice := append(entityPropertyValueSlice, taskPropertyValueSlice...)
 	file.WriteString("\n" + strings.Join(combinedPropertyValueSlice, ","))
 	return taskToStore.Id
+}
+
+// Overwrites file records. Used after delete or update.
+func RewriteFile(records [][]string) {
+	// Reopen file to rewrite.
+	file, err := os.Create(file_name)
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
+
+	defer file.Close()
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write updated records.
+	err = writer.WriteAll(records)
+	if err != nil {
+		error_handling.HandleError(err.Error(), 1)
+	}
 }
 
 // Creates a task entity to be stored.
