@@ -34,10 +34,6 @@ func main() {
 	removeTaskCmd := flag.NewFlagSet("removeTask", flag.ExitOnError)
 	removeTaskId := removeTaskCmd.String("id", "", "Sets the id, referencing the task that should be removed.")
 
-	//addSubTask := addCmd.String("subTask", "", "Sets the sub task.")
-	//addSubTaskStatus := addCmd.Int("subTaskStatus", 0, "Sets the status of the sub task.")
-	//addSubTaskNote := addCmd.String("subTaskNote", "", "Sets notes about the sub task.")
-
 	if len(os.Args) < 2 {
 		error_handling.HandleInvalidSelection()
 	}
